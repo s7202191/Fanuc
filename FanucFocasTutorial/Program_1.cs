@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FanucFocasTutorial;
 //
-//удалили лишние методы и упростили,см. предыдущую версию изначальную
+//удалили лишние методы и упростили
 //
 
 
@@ -26,7 +26,7 @@ namespace FanucFocasTutorial1
             Thread t = new Thread(new ThreadStart(ExitCheck));
             t.Start();
 
-            _ret = Focas1.cnc_allclibhndl3("192.168.101.170", 8193, 6, out _handle); // получаем хэндл
+            _ret = Focas1.cnc_allclibhndl3("192.168.101.170", 8193, 6, out _handle); //жестко вбили IP и получаем хэндл
 
             if (_ret != Focas1.EW_OK)
             {
