@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FanucFocasTutorial;
 //
-//
+//удалили лишние методы и упростили,см. предыдущую версию изначальную
 //
 
 
@@ -18,30 +18,44 @@ namespace FanucFocasTutorial1
     {
         static ushort _handle = 0;
         static short _ret = 0;
-
         static bool _exit = false;
+        static string _error = "";
 
         static void Main(string[] args)
         {
             Thread t = new Thread(new ThreadStart(ExitCheck));
             t.Start();
 
-            _ret = Focas1.cnc_allclibhndl3("192.168.101.170", 8193, 6, out _handle);
+            _ret = Focas1.cnc_allclibhndl3("192.168.101.170", 8193, 6, out _handle); // получаем хэндл
 
             if (_ret != Focas1.EW_OK)
             {
-                Console.WriteLine($"Unable to connect to 192.168.101.170 on port 8193\n\nReturn Code: {_ret}\n\nExiting....");
+                _error = "Ошибка 1: не могу подключиться к станку 192.168.101.170";
+                Console.WriteLine(_error);
+                Console.Read();
+            }
+            else if (_handle == 0)
+            {
+                _error = "Ошибка 2: Handle = 0";
+                Console.WriteLine(_error);
                 Console.Read();
             }
             else
             {
-                Console.WriteLine($"переменная _handle = {_handle}");
-
+                Console.WriteLine($"handle = {_handle}");
                 string mode = GetMode();
-                Console.WriteLine($"\n\nРежим: {mode}");
 
-                string status = GetStatus();
-                Console.WriteLine($"\n\nСтатус включения: {status}\n\n");
+                if (mode == "Ошибка 3")
+                {
+                    _error = "Ошибка 3: не могу получить режим станка";
+                    Console.WriteLine(_error);
+                    Console.Read();
+                }
+                else {
+                    Console.WriteLine($"\nРежим: {mode}");
+                    string status = GetStatus();
+                    Console.WriteLine($"Статус включения: {status}\n");
+                }
 
                 GetMacro(801);  //читаем переменную #801 у станка
                 GetMacro(802);  //читаем переменную #802 у станка
@@ -49,19 +63,17 @@ namespace FanucFocasTutorial1
                 GetMacro(804);  //читаем переменную #804 у станка
                 Console.WriteLine("");
                 SetMacro(813, 1, 0); //устанавливаем переменную #813 у станка
-                GetMacro(813); //читаем переменную #814 у станка
+                GetMacro(813); //читаем переменную #813 у станка
                 Console.WriteLine("");
                 //DNCStart(); // вызываем программу через DNC
-
+                
                 while (!_exit)
                 {
                     bool isRunning = GetOpSignal();
-                    Console.Write($"\rТекущее состояние станка: {(isRunning ? "Программа запущена и работает" : "Программа не запущена")}\r");
+                    string _mode = GetMode();
+                    Console.Write($"\rРежим: {_mode}. Текущее состояние станка: {(isRunning ? "Программа запущена и работает" : "Программа не запущена")}\r");
                     Thread.Sleep(500);
                 }
-
-
-
 
             }
         }
@@ -106,23 +118,14 @@ namespace FanucFocasTutorial1
 
         public static string GetMode()
         {
-            if (_handle == 0)
-            {
-                string modestr_hndl_err = "ошибка handle = 0";
-
-                //Console.WriteLine("Error: Please obtain a handle before calling this method");
-                return $"{modestr_hndl_err}";
-            }
-
             Focas1.ODBST Mode = new Focas1.ODBST();
-
             _ret = Focas1.cnc_statinfo(_handle, Mode);
 
-            if (_ret != 0)
+            if (_ret != Focas1.EW_OK)
             {
-                string modestr_ret_0 = "не могу получить режим станка";
+                string modestr_ret_0 = "Ошибка 3";
                 //Console.WriteLine($"Error: Unable to obtain mode.\nReturn Code: {_ret}");
-                return $"{modestr_ret_0}";
+                return $"{modestr_ret_0}"; //
             }
 
             string modestr = ModeNumberToString(Mode.aut);

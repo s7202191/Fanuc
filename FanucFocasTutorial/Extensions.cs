@@ -14,9 +14,5 @@ namespace FanucFocasTutorial1
 
         }
 
-        public static bool GetBit(this int b, int bitNumber)
-        {
-            return (b & (1 << bitNumber)) != 0;
-        }
     }
 }
